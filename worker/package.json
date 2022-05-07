@@ -1,0 +1,17 @@
+{
+  "name": "producer",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "main": "index.js",
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "amqplib": "0.8.0",
+    "sequelize": "^6.19.0",
+    "sequelize-cockroachdb": "^6.0.5"
+  }
+}
