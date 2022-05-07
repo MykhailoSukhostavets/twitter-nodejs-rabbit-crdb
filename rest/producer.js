@@ -1,4 +1,6 @@
 const amqp = require('amqplib');
+const sequelize = require('./sequelize.js');
+
 const queueName = process.env?.QUEUE || 'tasks';
 let clients = [];
 let channel;
@@ -22,10 +24,7 @@ async function addToQueue(request, response) {
 
     console.log('Start publishing');
     console.log(clients);
-    channel.sendToQueue(
-      queueName,
-      Buffer.from(JSON.stringify({ message, clients: [clients[0].write] }))
-    );
+    channel.sendToQueue(queueName, Buffer.from(JSON.stringify({ message })));
     console.log('End publishing');
     response.sendStatus(200);
   } catch (error) {
@@ -55,7 +54,7 @@ function addClient(request, response) {
   };
 
   clients.push(newClient);
-
+  // sequelize.models.client.create({ text: JSON.stringify(response) });
   request.on('close', () => {
     console.log(`${clientId} Connection closed`);
     clients = clients.filter((client) => client.id !== clientId);

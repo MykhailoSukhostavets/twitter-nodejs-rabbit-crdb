@@ -14,6 +14,17 @@ sequelize.define('messages', {
   },
 });
 
+sequelize.define('client', {
+  id: {
+    type: Sequelize.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  text: {
+    type: Sequelize.TEXT,
+  },
+});
+
 const setUpDatabase = async () => {
   console.log('Starting setting up');
   const messages = [

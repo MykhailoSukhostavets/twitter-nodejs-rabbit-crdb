@@ -2,6 +2,7 @@ const Sequelize = require('sequelize-cockroachdb');
 const amqp = require('amqplib');
 
 let Message;
+let Client;
 const queueName = process.env?.QUEUE || 'tasks';
 
 async function connect() {
@@ -37,10 +38,9 @@ async function connect() {
     channel.consume(queueName, async (message) => {
       const input = JSON.parse(message.content.toString());
       await Message.create({ text: input.message });
-      // console.log(input.clients);
-      input.clients.forEach((client) => {
-        console.log(client);
-      });
+
+      // fetch data from localhost
+
       channel.ack(message);
     });
     console.log(`Waiting for messages...`);
