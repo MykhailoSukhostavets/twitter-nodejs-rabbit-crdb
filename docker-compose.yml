@@ -49,6 +49,8 @@ services:
       - app-network
     environment:
       - QUEUE=tasks
+      - BD_LINK=postgresql://root@crdb-0:26257/defaultdb?sslmode=disable
+      - RABBIT=amqp://rabbitmq
     links:
       - rabbitmq
 
@@ -66,7 +68,9 @@ services:
       - app-network
     environment:
       - QUEUE=tasks
+      - BD_LINK=postgresql://root@crdb-0:26257/defaultdb?sslmode=disable
       - PORT=3000
+      - RABBIT=amqp://rabbitmq
     links:
       - rabbitmq
 

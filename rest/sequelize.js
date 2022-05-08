@@ -1,9 +1,7 @@
 const Sequelize = require('sequelize');
 
 const setUpDatabase = async () => {
-  const sequelize = new Sequelize(
-    'postgresql://root@crdb-0:26257/defaultdb?sslmode=disable'
-  );
+  const sequelize = new Sequelize(process.env?.BD_LINK);
   sequelize.define('messages', {
     id: {
       type: Sequelize.INTEGER,

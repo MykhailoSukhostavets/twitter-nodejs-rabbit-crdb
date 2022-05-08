@@ -8,7 +8,7 @@ let channel;
 async function connectToRabbit() {
   while (!channel) {
     try {
-      const connection = await amqp.connect('amqp://rabbitmq');
+      const connection = await amqp.connect(process.env?.RABBIT);
       channel = await connection.createChannel();
       await channel.assertQueue('send');
       channel.consume('send', async (message) => {

@@ -7,8 +7,7 @@ const queueName = process.env?.QUEUE || 'tasks';
 
 async function connect() {
   try {
-    const connectionString =
-      'postgresql://root@crdb-0:26257/defaultdb?sslmode=disable';
+    const connectionString = process.env?.BD_LINK;
 
     let sequelize;
     while (!sequelize) {
@@ -34,7 +33,7 @@ async function connect() {
     let connection;
     while (!connection) {
       try {
-        connection = await amqp.connect('amqp://rabbitmq');
+        connection = await amqp.connect(process.env?.RABBIT);
       } catch {
         await wait(2000);
       }
