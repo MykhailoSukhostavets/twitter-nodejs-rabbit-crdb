@@ -1,9 +1,9 @@
 FROM node:16.13.0-alpine
-WORKDIR /app
+WORKDIR /usr/src/app
 
 COPY ["package.json", "package-lock.json*", "./"]
 
-RUN npm install --production
-
+RUN npm i
 COPY . .
+
 CMD ["npm", "run", "start"]

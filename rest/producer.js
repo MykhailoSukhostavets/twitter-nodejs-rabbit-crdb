@@ -1,5 +1,5 @@
-const amqp = require('amqplib');
 const sequelize = require('./sequelize.js');
+const amqp = require('amqplib');
 
 const queueName = process.env?.QUEUE || 'tasks';
 let clients = [];
@@ -10,6 +10,13 @@ async function connectToRabbit() {
     try {
       const connection = await amqp.connect('amqp://rabbitmq');
       channel = await connection.createChannel();
+      await channel.assertQueue('send');
+      channel.consume('send', async (message) => {
+        const input = JSON.parse(message.content.toString());
+        clients.forEach((client) => {
+          client.response.write(`${input.message}\n\n`);
+        });
+      });
     } catch {
       await wait(500);
     }
@@ -23,7 +30,6 @@ async function addToQueue(request, response) {
     await channel.assertQueue(queueName);
 
     console.log('Start publishing');
-    console.log(clients);
     channel.sendToQueue(queueName, Buffer.from(JSON.stringify({ message })));
     console.log('End publishing');
     response.sendStatus(200);
@@ -38,7 +44,7 @@ function wait(ms) {
   });
 }
 
-function addClient(request, response) {
+async function addClient(request, response) {
   const headers = {
     'Content-Type': 'text/event-stream',
     Connection: 'keep-alive',
@@ -54,7 +60,13 @@ function addClient(request, response) {
   };
 
   clients.push(newClient);
-  // sequelize.models.client.create({ text: JSON.stringify(response) });
+  const pgClient = await sequelize();
+  const msg = (await pgClient.models.messages.findAll()).map((message) =>
+    message.get()
+  );
+  msg.forEach((message) => {
+    response.write(`${message.text}\n\n`);
+  });
   request.on('close', () => {
     console.log(`${clientId} Connection closed`);
     clients = clients.filter((client) => client.id !== clientId);
