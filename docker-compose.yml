@@ -37,20 +37,37 @@ services:
     networks:
       - app-network
 
-  consumer:
+  worker:
     build:
-      context: ./consumer
+      context: ./worker
+      dockerfile: Dockerfile
+    working_dir: /usr/src/app
+    volumes:
+      - ./worker:/usr/src/app
+      - /usr/src/app/node_modules
+    networks:
+      - app-network
+    environment:
+      - QUEUE=tasks
+    links:
+      - rabbitmq
+
+  rest:
+    build:
+      context: ./rest
       dockerfile: Dockerfile
     working_dir: /usr/src/app
     ports:
       - '3000:3000'
     volumes:
-      - ./consumer:/usr/src/app
+      - ./rest:/usr/src/app
+      - /usr/src/app/node_modules
     networks:
       - app-network
+    environment:
+      - QUEUE=tasks
+      - PORT=3000
     links:
-      - rabbitmq
-    depends_on:
       - rabbitmq
 
 networks:

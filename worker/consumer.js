@@ -1,15 +1,23 @@
 const Sequelize = require('sequelize-cockroachdb');
 const amqp = require('amqplib');
-let clients = [];
+
 let Message;
-const queueName = 'tasks';
+
+const queueName = process.env?.QUEUE || 'tasks';
 
 async function connect() {
   try {
     const connectionString =
       'postgresql://root@crdb-0:26257/defaultdb?sslmode=disable';
-    const sequelize = new Sequelize(connectionString);
 
+    let sequelize;
+    while (!sequelize) {
+      try {
+        sequelize = new Sequelize(connectionString);
+      } catch {
+        await wait(2000);
+      }
+    }
     Message = sequelize.define('messages', {
       id: {
         type: Sequelize.INTEGER,
@@ -22,9 +30,7 @@ async function connect() {
     });
 
     // Create the "messages" table.
-    await Message.sync({
-      force: true,
-    });
+    await Message.sync();
     let connection;
     while (!connection) {
       try {
@@ -40,9 +46,13 @@ async function connect() {
       const input = JSON.parse(message.content.toString());
       await Message.create({ text: input.message });
 
-      clients.forEach((client) => {
-        client.response.write(`New message: ${input.message}\n\n`);
-      });
+      // fetch data from localhost
+      await channel.assertQueue('send');
+      const check = channel.sendToQueue(
+        'send',
+        Buffer.from(JSON.stringify({ message: input.message }))
+      );
+      console.log('CHECK ' + check);
       channel.ack(message);
     });
     console.log(`Waiting for messages...`);
@@ -59,5 +69,4 @@ function wait(ms) {
 
 module.exports = {
   connect,
-  clients,
 };
